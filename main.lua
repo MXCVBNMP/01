@@ -59,9 +59,6 @@ local JumpEnabled  = false
 local SpeedValue = 16
 local JumpValue  = 50
 
-local DEFAULT_SPEED = 16
-local DEFAULT_JUMP  = 50
-
 local MAX_SPEED = 150
 local MAX_JUMP  = 250
 
@@ -91,8 +88,6 @@ RunService.Heartbeat:Connect(function()
 				dir.Z * SpeedValue
 			)
 		end
-	else
-		hum.WalkSpeed = DEFAULT_SPEED
 	end
 
 	if JumpEnabled then
@@ -105,8 +100,6 @@ RunService.Heartbeat:Connect(function()
 				hrp.AssemblyLinearVelocity.Z
 			)
 		end
-	else
-		hum.JumpPower = DEFAULT_JUMP
 	end
 end)
 
@@ -172,6 +165,7 @@ end
 -- =====================
 local gui = Instance.new("ScreenGui", plr.PlayerGui)
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
 local toggleBtn = Instance.new("ImageButton", gui)
 toggleBtn.Size = UDim2.new(0,46,0,46)
@@ -182,8 +176,8 @@ toggleBtn.Draggable = true
 Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,230,0,260)
-main.Position = UDim2.new(0.5,-115,0.5,-130)
+main.Size = UDim2.new(0,230,0,320)
+main.Position = UDim2.new(0.5,-115,0.5,-160)
 main.BackgroundColor3 = Color3.fromRGB(25,25,25)
 main.BorderSizePixel = 0
 main.Visible = false
@@ -195,12 +189,12 @@ header.BackgroundColor3 = Color3.fromRGB(35,35,35)
 local title = Instance.new("TextLabel", header)
 title.Size = UDim2.new(1,0,1,0)
 title.BackgroundTransparency = 1
-title.Text = " by Faust  ไม่รู้ "
+title.Text = "by Faust"
 title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 14
 
--- DRAG UI
+-- DRAG WINDOW
 do
 	local dragging, dragStart, startPos
 	header.InputBegan:Connect(function(i)
@@ -216,8 +210,6 @@ do
 	end)
 	UserInputService.InputChanged:Connect(function(i)
 		if not dragging then return end
-		if i.UserInputType ~= Enum.UserInputType.MouseMovement
-		and i.UserInputType ~= Enum.UserInputType.Touch then return end
 		local delta = i.Position - dragStart
 		main.Position = UDim2.new(
 			startPos.X.Scale, startPos.X.Offset + delta.X,
@@ -230,8 +222,8 @@ local frame = Instance.new("ScrollingFrame", main)
 frame.Position = UDim2.new(0,0,0,30)
 frame.Size = UDim2.new(1,0,1,-30)
 frame.ScrollBarThickness = 5
-frame.CanvasSize = UDim2.new(0,0,0,0)
 frame.BackgroundTransparency = 1
+frame.CanvasSize = UDim2.new(0,0,0,360)
 
 local function makeButton(text, y)
 	local b = Instance.new("TextButton", frame)
@@ -253,7 +245,7 @@ local speedBtn  = makeButton("Speed : OFF", 130)
 local jumpBtn   = makeButton("Jump : OFF", 170)
 
 -- =====================
--- SLIDER
+-- SLIDERS
 -- =====================
 local function createSlider(text, y, min, max, default, onChange)
 	local label = Instance.new("TextLabel", frame)
@@ -288,8 +280,6 @@ local function createSlider(text, y, min, max, default, onChange)
 	end)
 	UserInputService.InputChanged:Connect(function(i)
 		if not dragging then return end
-		if i.UserInputType ~= Enum.UserInputType.MouseMovement
-		and i.UserInputType ~= Enum.UserInputType.Touch then return end
 		local pos = math.clamp(
 			(i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1
 		)
@@ -308,43 +298,41 @@ createSlider("Jump", 270, 50, MAX_JUMP, JumpValue, function(v)
 	JumpValue = v
 end)
 
-local function updateCanvas()
-	local maxY = 0
-	for _, v in ipairs(frame:GetChildren()) do
-		if v:IsA("GuiObject") then
-			maxY = math.max(maxY, v.Position.Y.Offset + v.Size.Y.Offset)
+-- =====================
+-- BUTTON INPUT (ANTI INPUT BLOCK)
+-- =====================
+local function bind(btn, func)
+	btn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+			func()
 		end
-	end
-	frame.CanvasSize = UDim2.new(0,0,0,maxY + 10)
+	end)
 end
-updateCanvas()
 
--- =====================
--- EVENTS
--- =====================
-toggleBtn.MouseButton1Click:Connect(function()
+bind(toggleBtn, function()
 	main.Visible = not main.Visible
 end)
 
-tpBtn.MouseButton1Click:Connect(GiveTeleportTool)
+bind(tpBtn, GiveTeleportTool)
 
-noclipBtn.MouseButton1Click:Connect(function()
+bind(noclipBtn, function()
 	Clip = not Clip
 	noclipBtn.Text = Clip and "Noclip : OFF" or "Noclip : ON"
 end)
 
-espBtn.MouseButton1Click:Connect(function()
+bind(espBtn, function()
 	ESP_ENABLED = not ESP_ENABLED
 	espBtn.Text = ESP_ENABLED and "ESP : ON" or "ESP : OFF"
 	updateESP()
 end)
 
-speedBtn.MouseButton1Click:Connect(function()
+bind(speedBtn, function()
 	SpeedEnabled = not SpeedEnabled
 	speedBtn.Text = SpeedEnabled and "Speed : ON" or "Speed : OFF"
 end)
 
-jumpBtn.MouseButton1Click:Connect(function()
+bind(jumpBtn, function()
 	JumpEnabled = not JumpEnabled
 	jumpBtn.Text = JumpEnabled and "Jump : ON" or "Jump : OFF"
 end)
