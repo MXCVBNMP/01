@@ -1,428 +1,664 @@
+--==================================================
+-- FLUENT HUB - COMBINED
+--==================================================
+
+local Fluent = loadstring(game:HttpGet(
+    "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
+))()
+
+local SaveManager = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"
+))()
+
+local InterfaceManager = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"
+))()
+
+--==================================================
 -- SERVICES
+--==================================================
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
-local plr = Players.LocalPlayer
+local Player = Players.LocalPlayer
 
--- =====================
--- NOCLIP
--- =====================
-local Clip = true
-RunService.Stepped:Connect(function()
-if Clip then return end
-local char = plr.Character
-if not char then return end
-for _, part in ipairs(char:GetDescendants()) do
-if part:IsA("BasePart") then
-part.CanCollide = false
-end
-end
-end)
+--==================================================
+-- WINDOW
+--==================================================
 
--- =====================
--- TELEPORT TOOL
--- =====================
-local function GiveTeleportTool()
-if plr.Backpack:FindFirstChild("Teleport Tool")
-or (plr.Character and plr.Character:FindFirstChild("Teleport Tool")) then
-return
-end
+local Window = Fluent:CreateWindow({
+    Title = "Fluent Hub",
+    SubTitle = "Combined",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
 
-local tool = Instance.new("Tool")  
-tool.Name = "Teleport Tool"  
-tool.RequiresHandle = false  
-tool.Parent = plr.Backpack  
+local Tabs = {
+    Main = Window:AddTab({
+        Title = "Main"
+    }),
 
-tool.Activated:Connect(function()  
-	local char = plr.Character  
-	if not char then return end  
-	local hrp = char:FindFirstChild("HumanoidRootPart")  
-	if not hrp then return end  
+    BossSell = Window:AddTab({
+        Title = "Boss/sell"
+    }),
 
-	local cam = workspace.CurrentCamera  
-	local pos = UserInputService:GetMouseLocation()  
-	local ray = cam:ViewportPointToRay(pos.X, pos.Y)  
-	local result = workspace:Raycast(ray.Origin, ray.Direction * 1000)  
-	if result then  
-		hrp.CFrame = CFrame.new(result.Position + Vector3.new(0,3,0))  
-	end  
-end)
+    TP = Window:AddTab({
+        Title = "TP"
+    }),
 
-end
+    Settings = Window:AddTab({
+        Title = "Settings",
+        Icon = "settings"
+    })
+}
 
--- =====================
--- SPEED / JUMP
--- =====================
-local SpeedEnabled = false
-local JumpEnabled  = false
+--==================================================
+-- VARIABLES
+--==================================================
 
-local SpeedValue = 16
-local JumpValue  = 50
+_G.AutoBuyBait = false
+_G.AutoTicketQuest = false
 
-local DEFAULT_SPEED = 16
-local DEFAULT_JUMP  = 50
+_G.AutoBoss = false
+_G.AutoRhythmHit = false
+_G.AutoEnzo = false
 
-local MAX_SPEED = 150
-local MAX_JUMP  = 250
+getgenv().Honey_AutoSell = false
+getgenv().Honey_SellDelay = 5
 
-local function getHumanoid()
-local char = plr.Character
-if not char then return end
-return char:FindFirstChildOfClass("Humanoid")
-end
+getgenv().Honey_Anchor = false
 
-local function getHRP()
-local char = plr.Character
-if not char then return end
-return char:FindFirstChild("HumanoidRootPart")
-end
+-- 0 = ซ้าย
+-- 0.5 = กลาง
+-- 1 = ขวา
+getgenv().Honey_AnchorPosition = 0.5
 
-RunService.Heartbeat:Connect(function()
-local hum = getHumanoid()
-local hrp = getHRP()
-if not hum or not hrp then return end
+getgenv().Honey_AutoCast = false
+getgenv().Honey_AutoSkill = false
 
-if SpeedEnabled then  
-	local dir = hum.MoveDirection  
-	if dir.Magnitude > 0 then  
-		hrp.AssemblyLinearVelocity = Vector3.new(  
-			dir.X * SpeedValue,  
-			hrp.AssemblyLinearVelocity.Y,  
-			dir.Z * SpeedValue  
-		)  
-	end  
-else  
-	hum.WalkSpeed = DEFAULT_SPEED  
-end  
+getgenv().Honey_Skills = {
+    Z = true,
+    X = true,
+    C = true,
+    V = true
+}
 
-if JumpEnabled then  
-	hum.UseJumpPower = true  
-	hum.JumpPower = JumpValue  
-	if hum:GetState() == Enum.HumanoidStateType.Jumping then  
-		hrp.AssemblyLinearVelocity = Vector3.new(  
-			hrp.AssemblyLinearVelocity.X,  
-			JumpValue,  
-			hrp.AssemblyLinearVelocity.Z  
-		)  
-	end  
-else  
-	hum.JumpPower = DEFAULT_JUMP  
-end
+--==================================================
+-- MAIN
+--==================================================
 
-end)
+Tabs.Main:AddParagraph({
+    Title = "Main",
+    Content = "ระบบหลักและระบบตกปลา"
+})
 
--- =====================
--- ESP
--- =====================
-local ESP_ENABLED = false
-local ESP_CACHE = {}
+-- Auto Buy Bait
+Tabs.Main:AddToggle("Main_AutoBuyBait", {
+    Title = "Auto Buy Ancestral Bait",
+    Default = false,
 
-local function clearESP()
-for _, pack in pairs(ESP_CACHE) do
-if pack.highlight then pack.highlight:Destroy() end
-if pack.billboard then pack.billboard:Destroy() end
-end
-table.clear(ESP_CACHE)
-end
+    Callback = function(Value)
+        _G.AutoBuyBait = Value
+    end
+})
 
-local function addESP(player)
-if player == plr then return end
-if not player.Character then return end
-if ESP_CACHE[player] then return end
+-- Auto Ticket Quest
+Tabs.Main:AddToggle("Main_AutoTicketQuest", {
+    Title = "Auto Ticket Quest",
+    Default = false,
 
-local char = player.Character  
-local hrp = char:FindFirstChild("HumanoidRootPart")  
-if not hrp then return end  
+    Callback = function(Value)
+        _G.AutoTicketQuest = Value
+    end
+})
 
-local hl = Instance.new("Highlight")  
-hl.Adornee = char  
-hl.FillColor = Color3.fromRGB(255,0,0)  
-hl.FillTransparency = 0.6  
-hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop  
-hl.Parent = char  
+--==================================================
+-- FISHING
+--==================================================
 
-local bill = Instance.new("BillboardGui")  
-bill.Adornee = hrp  
-bill.Size = UDim2.new(0,120,0,30)  
-bill.StudsOffset = Vector3.new(0,3,0)  
-bill.AlwaysOnTop = true  
-bill.Parent = char  
+Tabs.Main:AddParagraph({
+    Title = "Fishing",
+    Content = "ระบบตกปลา"
+})
 
-local txt = Instance.new("TextLabel", bill)  
-txt.Size = UDim2.new(1,0,1,0)  
-txt.BackgroundTransparency = 1  
-txt.Text = player.Name  
-txt.TextColor3 = Color3.fromRGB(255,60,60)  
-txt.TextStrokeTransparency = 0  
-txt.TextScaled = true  
-txt.Font = Enum.Font.SourceSansBold  
+-- ล็อกปลา
+Tabs.Main:AddToggle("Main_Honey_Anchor", {
+    Title = "ล็อกปลา",
+    Description = "เปิดเพื่อให้ปลาอยู่ตามตำแหน่งที่กำหนด",
 
-ESP_CACHE[player] = {highlight = hl, billboard = bill}
+    Default = false,
 
-end
+    Callback = function(Value)
+        getgenv().Honey_Anchor = Value
+    end
+})
 
-local function updateESP()
-clearESP()
-if not ESP_ENABLED then return end
-for _, p in ipairs(Players:GetPlayers()) do
-addESP(p)
-end
-end
+-- Slider ตำแหน่งปลา
+Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
 
--- =====================
--- GUI
--- =====================
-local gui = Instance.new("ScreenGui", plr.PlayerGui)
-gui.ResetOnSpawn = false
+    Title = "ตำแหน่งล็อกปลา",
 
-local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0,46,0,46)
-toggleBtn.Position = UDim2.new(0,15,0.6,0)
-toggleBtn.BackgroundTransparency = 1
-toggleBtn.Image = "rbxassetid://93953871104478"
-toggleBtn.Draggable = true
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
+    Description = "0 = ซ้าย | 0.5 = กลาง | 1 = ขวา",
 
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,230,0,260)
-main.Position = UDim2.new(0.5,-115,0.5,-130)
-main.BackgroundColor3 = Color3.fromRGB(25,25,25)
-main.BorderSizePixel = 0
-main.Visible = false
+    Default = 0.5,
 
-local header = Instance.new("Frame", main)
-header.Size = UDim2.new(1,0,0,30)
-header.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    Min = 0,
+    Max = 1,
 
-local title = Instance.new("TextLabel", header)
-title.Size = UDim2.new(1,0,1,0)
-title.BackgroundTransparency = 1
-title.Text = " by Faust  ไม่รู้ "
-title.TextColor3 = Color3.new(1,1,1)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 14
+    Rounding = 2,
 
--- DRAG UI
-do
-local dragging, dragStart, startPos
-header.InputBegan:Connect(function(i)
-if i.UserInputType == Enum.UserInputType.MouseButton1
-or i.UserInputType == Enum.UserInputType.Touch then
-dragging = true
-dragStart = i.Position
-startPos = main.Position
-end
-end)
-UserInputService.InputEnded:Connect(function()
-dragging = false
-end)
-UserInputService.InputChanged:Connect(function(i)
-if not dragging then return end
-if i.UserInputType ~= Enum.UserInputType.MouseMovement
-and i.UserInputType ~= Enum.UserInputType.Touch then return end
-local delta = i.Position - dragStart
-main.Position = UDim2.new(
-startPos.X.Scale, startPos.X.Offset + delta.X,
-startPos.Y.Scale, startPos.Y.Offset + delta.Y
-)
-end)
-end
+    Callback = function(Value)
+        getgenv().Honey_AnchorPosition = Value
+    end
+})
 
-local frame = Instance.new("ScrollingFrame", main)
-frame.Position = UDim2.new(0,0,0,30)
-frame.Size = UDim2.new(1,0,1,-30)
-frame.ScrollBarThickness = 5
-frame.CanvasSize = UDim2.new(0,0,0,0)
-frame.BackgroundTransparency = 1
-frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+-- Auto Cast
+Tabs.Main:AddToggle("Main_Honey_AutoCast", {
+    Title = "เหวี่ยงเบ็ดอัตโนมัติ",
 
-local function makeButton(text, y)
-local b = Instance.new("TextButton", frame)
-b.Size = UDim2.new(1,-20,0,32)
-b.Position = UDim2.new(0,10,0,y)
-b.Text = text
-b.BackgroundColor3 = Color3.fromRGB(60,60,60)
-b.TextColor3 = Color3.new(1,1,1)
-b.Font = Enum.Font.SourceSansBold
-b.TextSize = 14
-Instance.new("UICorner", b)
-return b
-end
+    Default = false,
 
-local tpBtn     = makeButton("Get Teleport Tool", 10)
-local noclipBtn = makeButton("Noclip : OFF", 50)
-local espBtn    = makeButton("ESP : OFF", 90)
-local speedBtn  = makeButton("Speed : OFF", 130)
-local jumpBtn   = makeButton("Jump : OFF", 170)
+    Callback = function(Value)
+        getgenv().Honey_AutoCast = Value
+    end
+})
 
--- =====================
--- SLIDER
--- =====================
-local function createSlider(text, y, min, max, default, onChange)
-local label = Instance.new("TextLabel", frame)
-label.Size = UDim2.new(1,-20,0,18)
-label.Position = UDim2.new(0,10,0,y)
-label.BackgroundTransparency = 1
-label.TextColor3 = Color3.new(1,1,1)
-label.Font = Enum.Font.SourceSansBold
-label.TextSize = 13
-label.Text = text..": "..default
+-- Auto Skill
+Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
+    Title = "ออโต้สกิล",
 
-local bar = Instance.new("Frame", frame)  
-bar.Size = UDim2.new(1,-20,0,8)  
-bar.Position = UDim2.new(0,10,0,y+22)  
-bar.BackgroundColor3 = Color3.fromRGB(60,60,60)  
-Instance.new("UICorner", bar)  
+    Default = false,
 
-local fill = Instance.new("Frame", bar)  
-fill.Size = UDim2.new((default-min)/(max-min),0,1,0)  
-fill.BackgroundColor3 = Color3.fromRGB(120,120,255)  
-Instance.new("UICorner", fill)  
+    Callback = function(Value)
+        getgenv().Honey_AutoSkill = Value
+    end
+})
 
-local dragging = false  
-bar.InputBegan:Connect(function(i)  
-	if i.UserInputType == Enum.UserInputType.MouseButton1  
-	or i.UserInputType == Enum.UserInputType.Touch then  
-		dragging = true  
-	end  
-end)  
-UserInputService.InputEnded:Connect(function()  
-	dragging = false  
-end)  
-UserInputService.InputChanged:Connect(function(i)  
-	if not dragging then return end  
-	if i.UserInputType ~= Enum.UserInputType.MouseMovement  
-	and i.UserInputType ~= Enum.UserInputType.Touch then return end  
-	local pos = math.clamp(  
-		(i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1  
-	)  
-	fill.Size = UDim2.new(pos,0,1,0)  
-	local value = math.floor(min + (max-min)*pos)  
-	label.Text = text..": "..value  
-	onChange(value)  
-end)
+-- เลือก Skill
+Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
 
-end
+    Title = "เลือกสกิลที่จะกด",
 
-createSlider("Speed", 210, 16, MAX_SPEED, SpeedValue, function(v)
-SpeedValue = v
-end)
+    Values = {
+        "Z",
+        "X",
+        "C",
+        "V"
+    },
 
-createSlider("Jump", 270, 50, MAX_JUMP, JumpValue, function(v)
-JumpValue = v
-end)
+    Multi = true,
 
-local function updateCanvas()
-local maxY = 0
-for _, v in ipairs(frame:GetChildren()) do
-if v:IsA("GuiObject") then
-maxY = math.max(maxY, v.Position.Y.Offset + v.Size.Y.Offset)
-end
-end
-frame.CanvasSize = UDim2.new(0,0,0,maxY + 10)
-end
-updateCanvas()
+    Default = {
+        "Z",
+        "X",
+        "C",
+        "V"
+    },
 
--- =====================
--- EVENTS
--- =====================
-toggleBtn.MouseButton1Click:Connect(function()
-main.Visible = not main.Visible
-end)
+    Callback = function(Value)
 
-tpBtn.MouseButton1Click:Connect(GiveTeleportTool)
+        getgenv().Honey_Skills = {
+            Z = false,
+            X = false,
+            C = false,
+            V = false
+        }
 
-noclipBtn.MouseButton1Click:Connect(function()
-Clip = not Clip
-noclipBtn.Text = Clip and "Noclip : OFF" or "Noclip : ON"
-end)
+        for Skill, Enabled in pairs(Value) do
 
-espBtn.MouseButton1Click:Connect(function()
-ESP_ENABLED = not ESP_ENABLED
-espBtn.Text = ESP_ENABLED and "ESP : ON" or "ESP : OFF"
-updateESP()
-end)
+            if getgenv().Honey_Skills[Skill] ~= nil then
+                getgenv().Honey_Skills[Skill] = Enabled
+            end
 
-speedBtn.MouseButton1Click:Connect(function()
-SpeedEnabled = not SpeedEnabled
-speedBtn.Text = SpeedEnabled and "Speed : ON" or "Speed : OFF"
-end)
+        end
 
-jumpBtn.MouseButton1Click:Connect(function()
-JumpEnabled = not JumpEnabled
-jumpBtn.Text = JumpEnabled and "Jump : ON" or "Jump : OFF"
-end)
--- =====================
--- FULLBRIGHT (ADDED)
--- =====================
+    end
+})
 
-local Lighting = game:GetService("Lighting")
+--==================================================
+-- BOSS / SELL
+--==================================================
 
-local FullBright = false
+Tabs.BossSell:AddParagraph({
+    Title = "Boss / Sell",
+    Content = "ระบบบอสและขายปลา"
+})
 
-local function setFullBright(state)
-	FullBright = state
+-- Auto Enzo
+Tabs.BossSell:AddToggle("BossSell_AutoEnzo", {
+    Title = "Auto Enzo",
 
-	if state then
-		Lighting.Brightness = 2
-		Lighting.ClockTime = 14
-		Lighting.FogEnd = 100000
-		Lighting.GlobalShadows = false
-	else
-		Lighting.GlobalShadows = true
-	end
-end
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoEnzo = Value
+    end
+})
+
+-- Auto Squid
+Tabs.BossSell:AddToggle("BossSell_AutoRhythmHit", {
+    Title = "Auto ปลาหมึกยัก",
+
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoRhythmHit = Value
+    end
+})
+
+-- Auto Sell
+Tabs.BossSell:AddToggle("BossSell_AutoSell", {
+    Title = "Auto Sell Fish",
+
+    Default = false,
+
+    Callback = function(Value)
+        getgenv().Honey_AutoSell = Value
+    end
+})
+
+-- Sell Delay
+Tabs.BossSell:AddSlider("BossSell_SellDelay", {
+
+    Title = "Sell Delay",
+
+    Description = "เวลาหน่วงก่อนขายปลา",
+
+    Default = 5,
+
+    Min = 0.5,
+    Max = 30,
+
+    Rounding = 1,
+
+    Callback = function(Value)
+        getgenv().Honey_SellDelay = Value
+    end
+})
+
+--==================================================
+-- TP
+--==================================================
+
+Tabs.TP:AddParagraph({
+    Title = "Teleport",
+    Content = "กดแล้ววาปทันที"
+})
+
+-- Power 1
+Tabs.TP:AddButton({
+    Title = "Teleport Power 1",
+
+    Callback = function()
+
+        local Character = Player.Character
+
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
+
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(-214, 7, 39)
+
+        end
+
+    end
+})
+
+-- Power 19
+Tabs.TP:AddButton({
+    Title = "Teleport Power 19",
+
+    Callback = function()
+
+        local Character = Player.Character
+
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
+
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(-1220, 7, -13)
+
+        end
+
+    end
+})
+
+-- Power 32
+Tabs.TP:AddButton({
+    Title = "Teleport Power 32",
+
+    Callback = function()
+
+        local Character = Player.Character
+
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
+
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(73, 7, 1173)
+
+        end
+
+    end
+})
+
+--==================================================
+-- AUTO CAST
+--==================================================
 
 task.spawn(function()
-	while true do
-		if FullBright then
-			Lighting.FogEnd = 100000
-		end
-		task.wait(2)
-	end
+
+    while task.wait(1) do
+
+        if getgenv().Honey_AutoCast then
+
+            pcall(function()
+
+                local Character = Player.Character
+                local PlayerGui =
+                    Player:FindFirstChild("PlayerGui")
+
+                if not PlayerGui then
+                    return
+                end
+
+                local MainGui =
+                    PlayerGui:FindFirstChild("MainGui")
+
+                if not MainGui then
+                    return
+                end
+
+                local Fishing =
+                    MainGui:FindFirstChild("Fishing")
+
+                if not Fishing then
+                    return
+                end
+
+                if Character
+                    and not Character:GetAttribute("Fishing")
+                    and not Fishing.Visible then
+
+                    local Events =
+                        ReplicatedStorage:FindFirstChild("Events")
+
+                    if Events then
+
+                        local FishingEvent =
+                            Events:FindFirstChild("Fishing")
+
+                        if FishingEvent then
+                            FishingEvent:FireServer()
+                        end
+
+                    end
+
+                end
+
+            end)
+
+        end
+
+    end
+
 end)
 
-local brightBtn = makeButton("FullBright : OFF", 310)
+--==================================================
+-- AUTO SKILL
+--==================================================
 
-brightBtn.MouseButton1Click:Connect(function()
-	FullBright = not FullBright
-	setFullBright(FullBright)
-	brightBtn.Text = FullBright and "FullBright : ON" or "FullBright : OFF"
-end)local Lighting = game:GetService("Lighting")
-
-local FullBright = false
-
--- เก็บค่าของแมพเดิม
-local oldBrightness = Lighting.Brightness
-local oldClockTime = Lighting.ClockTime
-local oldFogEnd = Lighting.FogEnd
-local oldShadows = Lighting.GlobalShadows
-
-local function setFullBright(state)
-	FullBright = state
-
-	if state then
-		Lighting.Brightness = 2
-		Lighting.ClockTime = 14
-		Lighting.FogEnd = 100000
-		Lighting.GlobalShadows = false
-	else
-		Lighting.Brightness = oldBrightness
-		Lighting.ClockTime = oldClockTime
-		Lighting.FogEnd = oldFogEnd
-		Lighting.GlobalShadows = oldShadows
-	end
-end
--- กันแมพรีเซ็ต Lighting
 task.spawn(function()
-	while true do
-		if FullBright then
-			Lighting.Brightness = 2
-			Lighting.ClockTime = 14
-			Lighting.FogEnd = 100000
-			Lighting.GlobalShadows = false
-		end
-		task.wait(1)
-	end
+
+    local Skills = {
+        Z = Enum.KeyCode.Z,
+        X = Enum.KeyCode.X,
+        C = Enum.KeyCode.C,
+        V = Enum.KeyCode.V
+    }
+
+    while task.wait(0.5) do
+
+        if getgenv().Honey_AutoSkill then
+
+            for Skill, Key in pairs(Skills) do
+
+                if getgenv().Honey_Skills[Skill] then
+
+                    pcall(function()
+
+                        VirtualInputManager:SendKeyEvent(
+                            true,
+                            Key,
+                            false,
+                            game
+                        )
+
+                        task.wait(0.1)
+
+                        VirtualInputManager:SendKeyEvent(
+                            false,
+                            Key,
+                            false,
+                            game
+                        )
+
+                    end)
+
+                end
+
+            end
+
+        end
+
+    end
+
 end)
+
+--==================================================
+-- LOCK FISH
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+
+    if not getgenv().Honey_Anchor then
+        return
+    end
+
+    pcall(function()
+
+        local PlayerGui =
+            Player:FindFirstChild("PlayerGui")
+
+        if not PlayerGui then
+            return
+        end
+
+        local MainGui =
+            PlayerGui:FindFirstChild("MainGui")
+
+        if not MainGui then
+            return
+        end
+
+        local Fishing =
+            MainGui:FindFirstChild("Fishing")
+
+        if not Fishing or not Fishing.Visible then
+            return
+        end
+
+        local BarFrame =
+            Fishing:FindFirstChild("BarFrame")
+
+        if not BarFrame then
+            return
+        end
+
+        local Bar =
+            BarFrame:FindFirstChild("Bar")
+
+        if not Bar then
+            return
+        end
+
+        --========================================
+        -- ตำแหน่งจาก Slider
+        -- 0   = ซ้าย
+        -- 0.5 = กลาง
+        -- 1   = ขวา
+        --========================================
+
+        Bar.Position = UDim2.new(
+            getgenv().Honey_AnchorPosition,
+            -Bar.AbsoluteSize.X / 2,
+            Bar.Position.Y.Scale,
+            0
+        )
+
+        -- Remote เดิม
+        local FishingEvent =
+            ReplicatedStorage:FindFirstChild("Fishing")
+
+        if FishingEvent then
+            FishingEvent:FireServer("1")
+        end
+
+    end)
+
+end)
+
+--==================================================
+-- AUTO SELL
+--==================================================
+
+task.spawn(function()
+
+    while task.wait(0.2) do
+
+        if getgenv().Honey_AutoSell then
+
+            task.wait(getgenv().Honey_SellDelay)
+
+            pcall(function()
+
+                -- ใส่ Remote ขายปลาของเกมตรงนี้
+
+            end)
+
+        end
+
+    end
+
+end)
+
+--==================================================
+-- AUTO SCROLL
+--==================================================
+
+task.spawn(function()
+
+    while task.wait(0.5) do
+
+        pcall(function()
+
+            for _, Tab in pairs(Tabs) do
+
+                local Container =
+                    Tab.Container
+
+                if Container then
+
+                    local ScrollFrame
+
+                    if Container:IsA("ScrollingFrame") then
+                        ScrollFrame = Container
+                    else
+
+                        for _, Object in ipairs(
+                            Container:GetDescendants()
+                        ) do
+
+                            if Object:IsA("ScrollingFrame") then
+                                ScrollFrame = Object
+                                break
+                            end
+
+                        end
+
+                    end
+
+                    if ScrollFrame then
+
+                        ScrollFrame.ScrollingEnabled = true
+                        ScrollFrame.ScrollingDirection =
+                            Enum.ScrollingDirection.Y
+
+                        ScrollFrame.ScrollBarThickness = 5
+
+                        local Layout =
+                            ScrollFrame:FindFirstChildOfClass(
+                                "UIListLayout"
+                            )
+
+                        if Layout then
+
+                            ScrollFrame.CanvasSize =
+                                UDim2.new(
+                                    0,
+                                    0,
+                                    0,
+                                    Layout.AbsoluteContentSize.Y + 30
+                                )
+
+                        end
+
+                    end
+
+                end
+
+            end
+
+        end)
+
+    end
+
+end)
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("FluentHub")
+SaveManager:SetFolder("FluentHub")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+--==================================================
+-- START
+--==================================================
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Fluent Hub",
+
+    Content = "โหลดระบบเรียบร้อยแล้ว",
+
+    Duration = 5
+})
+
+SaveManager:LoadAutoloadConfig()
