@@ -535,19 +535,14 @@ end)
 --==================================================
 
 task.spawn(function()
+    local Event = game:GetService("ReplicatedStorage").Events.SellFish
 
     while task.wait(0.2) do
-
         if getgenv().Honey_AutoSell then
-
-            task.wait(
-                getgenv().Honey_SellDelay
-            )
+            task.wait(getgenv().Honey_SellDelay)
 
             pcall(function()
-
-                -- ใส่ Remote ขายปลาของเกมตรงนี้
-
+                Event:FireServer("All")
             end)
         end
     end
