@@ -94,43 +94,17 @@ getgenv().Honey_Skills = {
 --==================================================
 
 Tabs.Main:AddParagraph({
-    Title = "Main",
-    Content = "ระบบหลักและระบบตกปลา"
-})
-
--- Auto Buy Bait
-Tabs.Main:AddToggle("Main_AutoBuyBait", {
-    Title = "Auto Buy Ancestral Bait",
-    Default = false,
-
-    Callback = function(Value)
-        _G.AutoBuyBait = Value
-    end
-})
-
--- Auto Ticket Quest
-Tabs.Main:AddToggle("Main_AutoTicketQuest", {
-    Title = "Auto Ticket Quest",
-    Default = false,
-
-    Callback = function(Value)
-        _G.AutoTicketQuest = Value
-    end
-})
-
---==================================================
--- FISHING
---==================================================
-
-Tabs.Main:AddParagraph({
     Title = "Fishing",
     Content = "ระบบตกปลา"
 })
 
--- ล็อกปลา
+--==================================================
+-- 1. ล็อกปลา
+--==================================================
+
 Tabs.Main:AddToggle("Main_Honey_Anchor", {
     Title = "ล็อกปลา",
-    Description = "เปิดเพื่อให้ปลาอยู่ตามตำแหน่งที่กำหนด",
+    Description = "ล็อกตำแหน่งปลา",
 
     Default = false,
 
@@ -139,7 +113,10 @@ Tabs.Main:AddToggle("Main_Honey_Anchor", {
     end
 })
 
--- Slider ตำแหน่งปลา
+--==================================================
+-- SLIDER ตำแหน่งล็อกปลา
+--==================================================
+
 Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
 
     Title = "ตำแหน่งล็อกปลา",
@@ -158,8 +135,12 @@ Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
     end
 })
 
--- Auto Cast
+--==================================================
+-- 2. เหวี่ยงเบ็ด
+--==================================================
+
 Tabs.Main:AddToggle("Main_Honey_AutoCast", {
+
     Title = "เหวี่ยงเบ็ดอัตโนมัติ",
 
     Default = false,
@@ -169,8 +150,12 @@ Tabs.Main:AddToggle("Main_Honey_AutoCast", {
     end
 })
 
--- Auto Skill
+--==================================================
+-- 3. AUTO SKILL
+--==================================================
+
 Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
+
     Title = "ออโต้สกิล",
 
     Default = false,
@@ -180,7 +165,10 @@ Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
     end
 })
 
--- เลือก Skill
+--==================================================
+-- เลือกสกิล
+--==================================================
+
 Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
 
     Title = "เลือกสกิลที่จะกด",
@@ -222,6 +210,37 @@ Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
 })
 
 --==================================================
+-- MAIN SYSTEM
+--==================================================
+
+Tabs.Main:AddParagraph({
+    Title = "Main System",
+    Content = "ระบบหลัก"
+})
+
+Tabs.Main:AddToggle("Main_AutoBuyBait", {
+
+    Title = "Auto Buy Ancestral Bait",
+
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoBuyBait = Value
+    end
+})
+
+Tabs.Main:AddToggle("Main_AutoTicketQuest", {
+
+    Title = "Auto Ticket Quest",
+
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoTicketQuest = Value
+    end
+})
+
+--==================================================
 -- BOSS / SELL
 --==================================================
 
@@ -232,6 +251,7 @@ Tabs.BossSell:AddParagraph({
 
 -- Auto Enzo
 Tabs.BossSell:AddToggle("BossSell_AutoEnzo", {
+
     Title = "Auto Enzo",
 
     Default = false,
@@ -243,6 +263,7 @@ Tabs.BossSell:AddToggle("BossSell_AutoEnzo", {
 
 -- Auto Squid
 Tabs.BossSell:AddToggle("BossSell_AutoRhythmHit", {
+
     Title = "Auto ปลาหมึกยัก",
 
     Default = false,
@@ -254,6 +275,7 @@ Tabs.BossSell:AddToggle("BossSell_AutoRhythmHit", {
 
 -- Auto Sell
 Tabs.BossSell:AddToggle("BossSell_AutoSell", {
+
     Title = "Auto Sell Fish",
 
     Default = false,
@@ -291,7 +313,6 @@ Tabs.TP:AddParagraph({
     Content = "กดแล้ววาปทันที"
 })
 
--- Power 1
 Tabs.TP:AddButton({
     Title = "Teleport Power 1",
 
@@ -310,7 +331,6 @@ Tabs.TP:AddButton({
     end
 })
 
--- Power 19
 Tabs.TP:AddButton({
     Title = "Teleport Power 19",
 
@@ -329,7 +349,6 @@ Tabs.TP:AddButton({
     end
 })
 
--- Power 32
 Tabs.TP:AddButton({
     Title = "Teleport Power 32",
 
@@ -361,6 +380,7 @@ task.spawn(function()
             pcall(function()
 
                 local Character = Player.Character
+
                 local PlayerGui =
                     Player:FindFirstChild("PlayerGui")
 
@@ -411,7 +431,7 @@ task.spawn(function()
 end)
 
 --==================================================
--- AUTO SKILL
+-- AUTO SKILL - STABLE
 --==================================================
 
 task.spawn(function()
@@ -423,35 +443,49 @@ task.spawn(function()
         V = Enum.KeyCode.V
     }
 
-    while task.wait(0.5) do
+    while task.wait(0.1) do
 
-        if getgenv().Honey_AutoSkill then
+        if not getgenv().Honey_AutoSkill then
+            continue
+        end
 
-            for Skill, Key in pairs(Skills) do
+        local Character = Player.Character
 
-                if getgenv().Honey_Skills[Skill] then
+        if not Character then
+            continue
+        end
 
-                    pcall(function()
+        -- กดทีละสกิล
+        for Skill, Key in pairs(Skills) do
 
-                        VirtualInputManager:SendKeyEvent(
-                            true,
-                            Key,
-                            false,
-                            game
-                        )
+            if not getgenv().Honey_AutoSkill then
+                break
+            end
 
-                        task.wait(0.1)
+            if getgenv().Honey_Skills[Skill] then
 
-                        VirtualInputManager:SendKeyEvent(
-                            false,
-                            Key,
-                            false,
-                            game
-                        )
+                pcall(function()
 
-                    end)
+                    VirtualInputManager:SendKeyEvent(
+                        true,
+                        Key,
+                        false,
+                        game
+                    )
 
-                end
+                    task.wait(0.15)
+
+                    VirtualInputManager:SendKeyEvent(
+                        false,
+                        Key,
+                        false,
+                        game
+                    )
+
+                end)
+
+                -- หน่วงระหว่างสกิล
+                task.wait(0.25)
 
             end
 
@@ -510,16 +544,18 @@ RunService.RenderStepped:Connect(function()
 
         --========================================
         -- ตำแหน่งจาก Slider
-        -- 0   = ซ้าย
-        -- 0.5 = กลาง
-        -- 1   = ขวา
         --========================================
 
         Bar.Position = UDim2.new(
+
             getgenv().Honey_AnchorPosition,
+
             -Bar.AbsoluteSize.X / 2,
+
             Bar.Position.Y.Scale,
+
             0
+
         )
 
         -- Remote เดิม
@@ -573,51 +609,56 @@ task.spawn(function()
                 local Container =
                     Tab.Container
 
-                if Container then
+                if not Container then
+                    continue
+                end
 
-                    local ScrollFrame
+                local ScrollFrame
 
-                    if Container:IsA("ScrollingFrame") then
-                        ScrollFrame = Container
-                    else
+                if Container:IsA("ScrollingFrame") then
 
-                        for _, Object in ipairs(
-                            Container:GetDescendants()
-                        ) do
+                    ScrollFrame = Container
 
-                            if Object:IsA("ScrollingFrame") then
-                                ScrollFrame = Object
-                                break
-                            end
+                else
+
+                    for _, Object in ipairs(
+                        Container:GetDescendants()
+                    ) do
+
+                        if Object:IsA("ScrollingFrame") then
+
+                            ScrollFrame = Object
+                            break
 
                         end
 
                     end
 
-                    if ScrollFrame then
+                end
 
-                        ScrollFrame.ScrollingEnabled = true
-                        ScrollFrame.ScrollingDirection =
-                            Enum.ScrollingDirection.Y
+                if ScrollFrame then
 
-                        ScrollFrame.ScrollBarThickness = 5
+                    ScrollFrame.ScrollingEnabled = true
 
-                        local Layout =
-                            ScrollFrame:FindFirstChildOfClass(
-                                "UIListLayout"
+                    ScrollFrame.ScrollingDirection =
+                        Enum.ScrollingDirection.Y
+
+                    ScrollFrame.ScrollBarThickness = 5
+
+                    local Layout =
+                        ScrollFrame:FindFirstChildOfClass(
+                            "UIListLayout"
+                        )
+
+                    if Layout then
+
+                        ScrollFrame.CanvasSize =
+                            UDim2.new(
+                                0,
+                                0,
+                                0,
+                                Layout.AbsoluteContentSize.Y + 30
                             )
-
-                        if Layout then
-
-                            ScrollFrame.CanvasSize =
-                                UDim2.new(
-                                    0,
-                                    0,
-                                    0,
-                                    Layout.AbsoluteContentSize.Y + 30
-                                )
-
-                        end
 
                     end
 
@@ -644,8 +685,13 @@ SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("FluentHub")
 SaveManager:SetFolder("FluentHub")
 
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
+InterfaceManager:BuildInterfaceSection(
+    Tabs.Settings
+)
+
+SaveManager:BuildConfigSection(
+    Tabs.Settings
+)
 
 --==================================================
 -- START
@@ -655,9 +701,7 @@ Window:SelectTab(1)
 
 Fluent:Notify({
     Title = "Fluent Hub",
-
     Content = "โหลดระบบเรียบร้อยแล้ว",
-
     Duration = 5
 })
 
