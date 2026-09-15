@@ -225,20 +225,16 @@ Tabs.BossSell:AddSlider("BossSell_SellDelay", {
 --==================================================
 
 task.spawn(function()
+    local Event = game:GetService("ReplicatedStorage").Events.BuyBait
 
-    local Event =
-        ReplicatedStorage
-        :WaitForChild("Events")
-        :WaitForChild("BuyBait")
-
-    while task.wait(0.1) do
-
+    while task.wait(10) do
         if _G.AutoBuyBait then
-
             pcall(function()
-                Event:FireServer("Ancestral Bait")
+                Event:FireServer(
+                    "Ancestral Bait",
+                    100
+                )
             end)
-
         end
     end
 end)
@@ -301,7 +297,6 @@ end)
 
 --==================================================
 -- AUTO ENZO
--- ใช้โค้ดตัวเก่าตรง ๆ
 --==================================================
 
 task.spawn(function()
