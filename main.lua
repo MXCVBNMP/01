@@ -548,59 +548,204 @@ task.spawn(function()
     end
 end)
 
---==================================================
+---==================================================
 -- TP
 --==================================================
 
 Tabs.TP:AddButton({
-    Title = "Teleport Power 1",
+Title = "Teleport Power 1",
 
-    Callback = function()
+Callback = function()  
 
-        local Character = Player.Character
+    local Character = Player.Character  
 
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
 
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(-214, 7, 39)
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-214, 7, 39)  
 
-        end
-    end
+    end  
+end
+
 })
 
 Tabs.TP:AddButton({
-    Title = "Teleport Power 19",
+Title = "Teleport Power 19",
 
-    Callback = function()
+Callback = function()  
 
-        local Character = Player.Character
+    local Character = Player.Character  
 
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
 
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(-1220, 7, -13)
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-1220, 7, -13)  
 
-        end
-    end
+    end  
+end
+
 })
 
 Tabs.TP:AddButton({
-    Title = "Teleport Power 32",
+Title = "Teleport Power 32",
 
-    Callback = function()
+Callback = function()  
 
-        local Character = Player.Character
+    local Character = Player.Character  
 
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
 
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(73, 7, 1173)
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(73, 7, 1173)  
 
-        end
-    end
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport Power 39",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-1253, 7, 1241)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport Power 48",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(40, 9, -1339)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport Power 55",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-1429, 9, -1482)  
+
+    end  
+end
+
+})
+Tabs.TP:AddButton({
+Title = "Teleport Power 65",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(1435, 9, -1457)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport Power 75",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(1263, 7, 1390)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport Power 90",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(1291, 20, 37)  
+
+    end  
+end
+
+})
+Tabs.TP:AddButton({
+Title = "Teleport Power 100",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(2634, 7, -55)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport PVP",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-2429, 8, -209)  
+
+    end  
+end
+
 })
 
 --==================================================
