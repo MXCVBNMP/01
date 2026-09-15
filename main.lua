@@ -14,10 +14,6 @@ local InterfaceManager = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"
 ))()
 
---==================================================
--- SERVICES
---==================================================
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -64,19 +60,13 @@ local Tabs = {
 
 _G.AutoBuyBait = false
 _G.AutoTicketQuest = false
-
 _G.AutoBoss = false
 _G.AutoRhythmHit = false
-_G.AutoEnzo = false
 
 getgenv().Honey_AutoSell = false
 getgenv().Honey_SellDelay = 5
 
 getgenv().Honey_Anchor = false
-
--- 0 = ซ้าย
--- 0.5 = กลาง
--- 1 = ขวา
 getgenv().Honey_AnchorPosition = 0.5
 
 getgenv().Honey_AutoCast = false
@@ -93,19 +83,9 @@ getgenv().Honey_Skills = {
 -- MAIN
 --==================================================
 
-Tabs.Main:AddParagraph({
-    Title = "Fishing",
-    Content = "ระบบตกปลา"
-})
-
---==================================================
--- 1. ล็อกปลา
---==================================================
-
 Tabs.Main:AddToggle("Main_Honey_Anchor", {
     Title = "ล็อกปลา",
     Description = "ล็อกตำแหน่งปลา",
-
     Default = false,
 
     Callback = function(Value)
@@ -113,21 +93,13 @@ Tabs.Main:AddToggle("Main_Honey_Anchor", {
     end
 })
 
---==================================================
--- SLIDER ตำแหน่งล็อกปลา
---==================================================
-
 Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
-
     Title = "ตำแหน่งล็อกปลา",
-
     Description = "0 = ซ้าย | 0.5 = กลาง | 1 = ขวา",
 
     Default = 0.5,
-
     Min = 0,
     Max = 1,
-
     Rounding = 2,
 
     Callback = function(Value)
@@ -135,14 +107,8 @@ Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
     end
 })
 
---==================================================
--- 2. เหวี่ยงเบ็ด
---==================================================
-
 Tabs.Main:AddToggle("Main_Honey_AutoCast", {
-
     Title = "เหวี่ยงเบ็ดอัตโนมัติ",
-
     Default = false,
 
     Callback = function(Value)
@@ -150,14 +116,8 @@ Tabs.Main:AddToggle("Main_Honey_AutoCast", {
     end
 })
 
---==================================================
--- 3. AUTO SKILL
---==================================================
-
 Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
-
     Title = "ออโต้สกิล",
-
     Default = false,
 
     Callback = function(Value)
@@ -165,12 +125,7 @@ Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
     end
 })
 
---==================================================
--- เลือกสกิล
---==================================================
-
 Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
-
     Title = "เลือกสกิลที่จะกด",
 
     Values = {
@@ -199,29 +154,15 @@ Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
         }
 
         for Skill, Enabled in pairs(Value) do
-
             if getgenv().Honey_Skills[Skill] ~= nil then
                 getgenv().Honey_Skills[Skill] = Enabled
             end
-
         end
-
     end
 })
 
---==================================================
--- MAIN SYSTEM
---==================================================
-
-Tabs.Main:AddParagraph({
-    Title = "Main System",
-    Content = "ระบบหลัก"
-})
-
 Tabs.Main:AddToggle("Main_AutoBuyBait", {
-
     Title = "Auto Buy Ancestral Bait",
-
     Default = false,
 
     Callback = function(Value)
@@ -230,9 +171,7 @@ Tabs.Main:AddToggle("Main_AutoBuyBait", {
 })
 
 Tabs.Main:AddToggle("Main_AutoTicketQuest", {
-
     Title = "Auto Ticket Quest",
-
     Default = false,
 
     Callback = function(Value)
@@ -244,40 +183,22 @@ Tabs.Main:AddToggle("Main_AutoTicketQuest", {
 -- BOSS / SELL
 --==================================================
 
-Tabs.BossSell:AddParagraph({
-    Title = "Boss / Sell",
-    Content = "ระบบบอสและขายปลา"
-})
-
--- Auto Enzo
 Tabs.BossSell:AddToggle("BossSell_AutoEnzo", {
-
     Title = "Auto Enzo",
+    Default = false
+}):OnChanged(function(v)
+    _G.AutoBoss = v
+end)
 
-    Default = false,
-
-    Callback = function(Value)
-        _G.AutoEnzo = Value
-    end
-})
-
--- Auto Squid
 Tabs.BossSell:AddToggle("BossSell_AutoRhythmHit", {
-
     Title = "Auto ปลาหมึกยัก",
+    Default = false
+}):OnChanged(function(v)
+    _G.AutoRhythmHit = v
+end)
 
-    Default = false,
-
-    Callback = function(Value)
-        _G.AutoRhythmHit = Value
-    end
-})
-
--- Auto Sell
 Tabs.BossSell:AddToggle("BossSell_AutoSell", {
-
     Title = "Auto Sell Fish",
-
     Default = false,
 
     Callback = function(Value)
@@ -285,18 +206,13 @@ Tabs.BossSell:AddToggle("BossSell_AutoSell", {
     end
 })
 
--- Sell Delay
 Tabs.BossSell:AddSlider("BossSell_SellDelay", {
-
     Title = "Sell Delay",
-
     Description = "เวลาหน่วงก่อนขายปลา",
 
     Default = 5,
-
     Min = 0.5,
     Max = 30,
-
     Rounding = 1,
 
     Callback = function(Value)
@@ -305,67 +221,137 @@ Tabs.BossSell:AddSlider("BossSell_SellDelay", {
 })
 
 --==================================================
--- TP
+-- AUTO BUY BAIT
 --==================================================
 
-Tabs.TP:AddParagraph({
-    Title = "Teleport",
-    Content = "กดแล้ววาปทันที"
-})
+task.spawn(function()
 
-Tabs.TP:AddButton({
-    Title = "Teleport Power 1",
+    local Event =
+        ReplicatedStorage
+        :WaitForChild("Events")
+        :WaitForChild("BuyBait")
 
-    Callback = function()
+    while task.wait(0.1) do
 
-        local Character = Player.Character
+        if _G.AutoBuyBait then
 
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
-
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(-214, 7, 39)
+            pcall(function()
+                Event:FireServer("Ancestral Bait")
+            end)
 
         end
-
     end
-})
+end)
 
-Tabs.TP:AddButton({
-    Title = "Teleport Power 19",
+--==================================================
+-- AUTO TICKET QUEST
+--==================================================
 
-    Callback = function()
+task.spawn(function()
 
-        local Character = Player.Character
+    local Event =
+        ReplicatedStorage
+        :WaitForChild("Events")
+        :WaitForChild("ChooseDialogueOption")
 
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
+    local NPC =
+        workspace
+        :WaitForChild("NPC")
+        :WaitForChild("Function")
+        :WaitForChild("Ticket Quest Giver")
 
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(-1220, 7, -13)
+    while task.wait(10) do
+
+        if _G.AutoTicketQuest then
+
+            pcall(function()
+
+                Event:FireServer(
+                    "Ticket Quest Giver",
+                    1,
+                    "Quest",
+                    {NPC}
+                )
+
+                Event:FireServer(
+                    "Ticket Quest Giver",
+                    2,
+                    "HardAcceptQuest",
+                    {NPC, "Ticket Quest"}
+                )
+
+                Event:FireServer(
+                    "Ticket Quest Giver",
+                    1,
+                    "Quest",
+                    {NPC}
+                )
+
+                Event:FireServer(
+                    "Ticket Quest Giver",
+                    2,
+                    "SBF",
+                    {NPC}
+                )
+
+            end)
+        end
+    end
+end)
+
+--==================================================
+-- AUTO ENZO
+-- ใช้โค้ดตัวเก่าตรง ๆ
+--==================================================
+
+task.spawn(function()
+
+    local Event =
+        game:GetService("ReplicatedStorage")
+        .Events
+        .BossPhase2Action
+
+    while task.wait() do
+
+        if _G.AutoBoss then
+
+            for i = 1,10000000 do
+
+                if not _G.AutoBoss then
+                    break
+                end
+
+                Event:FireServer({
+                    Index = i,
+                    Hit = true
+                })
+
+                task.wait(0.5)
+            end
+        end
+    end
+end)
+
+--==================================================
+-- AUTO ปลาหมึกยัก
+--==================================================
+
+task.spawn(function()
+
+    local Event =
+        game:GetService("ReplicatedStorage")
+        .Events
+        .RhythmHit
+
+    while task.wait(0.3) do
+
+        if _G.AutoRhythmHit then
+
+            Event:FireServer("hit")
 
         end
-
     end
-})
-
-Tabs.TP:AddButton({
-    Title = "Teleport Power 32",
-
-    Callback = function()
-
-        local Character = Player.Character
-
-        if Character
-            and Character:FindFirstChild("HumanoidRootPart") then
-
-            Character.HumanoidRootPart.CFrame =
-                CFrame.new(73, 7, 1173)
-
-        end
-
-    end
-})
+end)
 
 --==================================================
 -- AUTO CAST
@@ -419,19 +405,15 @@ task.spawn(function()
                         end
 
                     end
-
                 end
 
             end)
-
         end
-
     end
-
 end)
 
 --==================================================
--- AUTO SKILL - STABLE
+-- AUTO SKILL
 --==================================================
 
 task.spawn(function()
@@ -449,13 +431,10 @@ task.spawn(function()
             continue
         end
 
-        local Character = Player.Character
-
-        if not Character then
+        if not Player.Character then
             continue
         end
 
-        -- กดทีละสกิล
         for Skill, Key in pairs(Skills) do
 
             if not getgenv().Honey_AutoSkill then
@@ -484,15 +463,10 @@ task.spawn(function()
 
                 end)
 
-                -- หน่วงระหว่างสกิล
                 task.wait(0.25)
-
             end
-
         end
-
     end
-
 end)
 
 --==================================================
@@ -524,7 +498,9 @@ RunService.RenderStepped:Connect(function()
         local Fishing =
             MainGui:FindFirstChild("Fishing")
 
-        if not Fishing or not Fishing.Visible then
+        if not Fishing
+            or not Fishing.Visible then
+
             return
         end
 
@@ -542,23 +518,13 @@ RunService.RenderStepped:Connect(function()
             return
         end
 
-        --========================================
-        -- ตำแหน่งจาก Slider
-        --========================================
-
         Bar.Position = UDim2.new(
-
             getgenv().Honey_AnchorPosition,
-
             -Bar.AbsoluteSize.X / 2,
-
             Bar.Position.Y.Scale,
-
             0
-
         )
 
-        -- Remote เดิม
         local FishingEvent =
             ReplicatedStorage:FindFirstChild("Fishing")
 
@@ -567,7 +533,6 @@ RunService.RenderStepped:Connect(function()
         end
 
     end)
-
 end)
 
 --==================================================
@@ -580,97 +545,73 @@ task.spawn(function()
 
         if getgenv().Honey_AutoSell then
 
-            task.wait(getgenv().Honey_SellDelay)
+            task.wait(
+                getgenv().Honey_SellDelay
+            )
 
             pcall(function()
 
                 -- ใส่ Remote ขายปลาของเกมตรงนี้
 
             end)
+        end
+    end
+end)
+
+--==================================================
+-- TP
+--==================================================
+
+Tabs.TP:AddButton({
+    Title = "Teleport Power 1",
+
+    Callback = function()
+
+        local Character = Player.Character
+
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
+
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(-214, 7, 39)
 
         end
-
     end
+})
 
-end)
+Tabs.TP:AddButton({
+    Title = "Teleport Power 19",
 
---==================================================
--- AUTO SCROLL
---==================================================
+    Callback = function()
 
-task.spawn(function()
+        local Character = Player.Character
 
-    while task.wait(0.5) do
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
 
-        pcall(function()
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(-1220, 7, -13)
 
-            for _, Tab in pairs(Tabs) do
-
-                local Container =
-                    Tab.Container
-
-                if not Container then
-                    continue
-                end
-
-                local ScrollFrame
-
-                if Container:IsA("ScrollingFrame") then
-
-                    ScrollFrame = Container
-
-                else
-
-                    for _, Object in ipairs(
-                        Container:GetDescendants()
-                    ) do
-
-                        if Object:IsA("ScrollingFrame") then
-
-                            ScrollFrame = Object
-                            break
-
-                        end
-
-                    end
-
-                end
-
-                if ScrollFrame then
-
-                    ScrollFrame.ScrollingEnabled = true
-
-                    ScrollFrame.ScrollingDirection =
-                        Enum.ScrollingDirection.Y
-
-                    ScrollFrame.ScrollBarThickness = 5
-
-                    local Layout =
-                        ScrollFrame:FindFirstChildOfClass(
-                            "UIListLayout"
-                        )
-
-                    if Layout then
-
-                        ScrollFrame.CanvasSize =
-                            UDim2.new(
-                                0,
-                                0,
-                                0,
-                                Layout.AbsoluteContentSize.Y + 30
-                            )
-
-                    end
-
-                end
-
-            end
-
-        end)
-
+        end
     end
+})
 
-end)
+Tabs.TP:AddButton({
+    Title = "Teleport Power 32",
+
+    Callback = function()
+
+        local Character = Player.Character
+
+        if Character
+            and Character:FindFirstChild("HumanoidRootPart") then
+
+            Character.HumanoidRootPart.CFrame =
+                CFrame.new(73, 7, 1173)
+
+        end
+    end
+})
 
 --==================================================
 -- SETTINGS
