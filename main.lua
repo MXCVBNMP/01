@@ -227,7 +227,7 @@ Tabs.BossSell:AddSlider("BossSell_SellDelay", {
 task.spawn(function()
     local Event = game:GetService("ReplicatedStorage").Events.BuyBait
 
-    while task.wait(10) do
+    while task.wait(20) do
         if _G.AutoBuyBait then
             pcall(function()
                 Event:FireServer(
@@ -256,7 +256,7 @@ task.spawn(function()
         :WaitForChild("Function")
         :WaitForChild("Ticket Quest Giver")
 
-    while task.wait(10) do
+    while task.wait(20) do
 
         if _G.AutoTicketQuest then
 
