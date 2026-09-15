@@ -1005,11 +1005,195 @@ end
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
+--==================================================
+-- COLOR + RGB SYSTEM
+--==================================================
+
+local RunService = game:GetService("RunService")
+
+local RGBEnabled = false
+local RGBConnection = nil
+local ColorLockConnection = nil
+
+local ColorObjects = {}
+
+local ColorPresets = {
+    Red = Color3.fromRGB(255, 70, 70),
+    Cyan = Color3.fromRGB(60, 200, 255),
+    Purple = Color3.fromRGB(170, 90, 255),
+    White = Color3.fromRGB(255, 255, 255),
+    Black = Color3.fromRGB(25, 25, 25),
+    Blue = Color3.fromRGB(70, 120, 255),
+    Pink = Color3.fromRGB(255, 100, 190),
+    Green = Color3.fromRGB(80, 220, 120)
+}
+
+local CurrentColor = ColorPresets.Cyan
+
+
+--==================================================
+-- REGISTER UI OBJECT
+--==================================================
+
+local function RegisterObject(Object)
+
+    if ColorObjects[Object] then
+        return
+    end
+
+    if Object:IsA("UIStroke")
+        or Object:IsA("TextButton")
+        or Object:IsA("ImageButton") then
+
+        ColorObjects[Object] = true
+    end
+end
+
+
+--==================================================
+-- SCAN UI ตอนเริ่ม
+--==================================================
+
+task.spawn(function()
+
+    if not Fluent.GUI then
+        return
+    end
+
+    for _, Object in ipairs(Fluent.GUI:GetDescendants()) do
+        RegisterObject(Object)
+    end
+
+    Fluent.GUI.DescendantAdded:Connect(function(Object)
+        RegisterObject(Object)
+    end)
+
+end)
+
+
+--==================================================
+-- APPLY COLOR
+--==================================================
+
+local function ApplyColor(Color)
+
+    CurrentColor = Color
+
+    for Object in pairs(ColorObjects) do
+
+        if not Object
+            or not Object.Parent then
+
+            ColorObjects[Object] = nil
+            continue
+        end
+
+        pcall(function()
+
+            if Object:IsA("UIStroke") then
+
+                Object.Color = Color
+
+            elseif Object:IsA("TextButton")
+                or Object:IsA("ImageButton") then
+
+                if Object.BackgroundTransparency < 1 then
+                    Object.BackgroundColor3 = Color
+                end
+
+            end
+
+        end)
+    end
+end
+
+
+--==================================================
+-- MANUAL COLOR LOCK
+-- ป้องกัน Fluent Theme ทับสีที่เลือก
+--==================================================
+
+local function StartColorLock()
+
+    if ColorLockConnection then
+        ColorLockConnection:Disconnect()
+    end
+
+    ColorLockConnection = RunService.Heartbeat:Connect(function()
+
+        if RGBEnabled then
+            return
+        end
+
+        ApplyColor(CurrentColor)
+
+    end)
+end
+
+
+local function StopColorLock()
+
+    if ColorLockConnection then
+        ColorLockConnection:Disconnect()
+        ColorLockConnection = nil
+    end
+end
+
+
+--==================================================
+-- RGB
+--==================================================
+
+local function StartRGB()
+
+    if RGBConnection then
+        RGBConnection:Disconnect()
+    end
+
+    RGBConnection = RunService.Heartbeat:Connect(function()
+
+        if not RGBEnabled then
+            return
+        end
+
+        local Hue = (os.clock() % 5) / 5
+
+        local Color = Color3.fromHSV(
+            Hue,
+            0.9,
+            1
+        )
+
+        ApplyColor(Color)
+
+    end)
+end
+
+
+local function StopRGB()
+
+    if RGBConnection then
+        RGBConnection:Disconnect()
+        RGBConnection = nil
+    end
+
+    ApplyColor(CurrentColor)
+end
+
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
 
 InterfaceManager:SetFolder("FluentHub")
 SaveManager:SetFolder("FluentHub")
+
 
 --==================================================
 -- COLOR
@@ -1034,24 +1218,29 @@ Tabs.Settings:AddDropdown("UI_Color", {
 
     Callback = function(Value)
 
-        if not ColorPresets[Value] then
-            return
+        if ColorPresets[Value] then
+
+            RGBEnabled = false
+
+            if RGBConnection then
+                RGBConnection:Disconnect()
+                RGBConnection = nil
+            end
+
+            CurrentColor = ColorPresets[Value]
+
+            ApplyColor(CurrentColor)
+
+            StartColorLock()
+
         end
-
-        RGBEnabled = false
-
-        if RGBConnection then
-            RGBConnection:Disconnect()
-            RGBConnection = nil
-        end
-
-        ApplyColor(ColorPresets[Value])
 
     end
 })
 
+
 --==================================================
--- RGB TOGGLE
+-- RGB
 --==================================================
 
 Tabs.Settings:AddToggle("UI_RGB", {
@@ -1067,13 +1256,36 @@ Tabs.Settings:AddToggle("UI_RGB", {
         RGBEnabled = Value
 
         if Value then
+
+            StopColorLock()
             StartRGB()
+
         else
+
             StopRGB()
+            StartColorLock()
+
         end
 
     end
 })
+
+
+--==================================================
+-- START MANUAL COLOR LOCK
+--==================================================
+
+StartColorLock()
+
+ApplyColor(CurrentColor)
+
+
+--==================================================
+-- FLUENT SETTINGS
+--==================================================
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
 --==================================================
 -- FLUENT SETTINGS
