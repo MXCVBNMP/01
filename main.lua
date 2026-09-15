@@ -28,8 +28,8 @@ local Player = Players.LocalPlayer
 local Window = Fluent:CreateWindow({
     Title = "Fluent Hub",
     SubTitle = "Combined",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
+    TabWidth = 130,
+    Size = UDim2.fromOffset(430, 350),
     Acrylic = true,
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl
@@ -604,6 +604,74 @@ Tabs.TP:AddButton({
 })
 
 --==================================================
+-- COLOR + RGB SYSTEM
+--==================================================
+
+local RunService = game:GetService("RunService")
+
+local RGBEnabled = false
+local RGBConnection = nil
+
+local ColorPresets = {
+    Red = Color3.fromRGB(255, 70, 70),
+    Cyan = Color3.fromRGB(60, 200, 255),
+    Purple = Color3.fromRGB(170, 90, 255),
+    White = Color3.fromRGB(255, 255, 255),
+    Black = Color3.fromRGB(25, 25, 25),
+    Blue = Color3.fromRGB(70, 120, 255),
+    Pink = Color3.fromRGB(255, 100, 190),
+    Green = Color3.fromRGB(80, 220, 120)
+}
+
+local CurrentColor = ColorPresets.Cyan
+
+local function ApplyColor(Color)
+    CurrentColor = Color
+
+    pcall(function()
+        for _, Object in ipairs(Fluent.GUI:GetDescendants()) do
+            if Object:IsA("UIStroke") then
+                Object.Color = Color
+
+            elseif Object:IsA("TextButton")
+                or Object:IsA("ImageButton") then
+
+                if Object.BackgroundTransparency < 1 then
+                    Object.BackgroundColor3 = Color
+                end
+            end
+        end
+    end)
+end
+
+local function StartRGB()
+    if RGBConnection then
+        RGBConnection:Disconnect()
+    end
+
+    RGBConnection = RunService.RenderStepped:Connect(function()
+        if not RGBEnabled then
+            return
+        end
+
+        local Hue = (os.clock() % 5) / 5
+        local Color = Color3.fromHSV(Hue, 0.9, 1)
+
+        ApplyColor(Color)
+    end)
+end
+
+local function StopRGB()
+    if RGBConnection then
+        RGBConnection:Disconnect()
+        RGBConnection = nil
+    end
+
+    ApplyColor(CurrentColor)
+end
+
+
+--==================================================
 -- SETTINGS
 --==================================================
 
@@ -616,14 +684,73 @@ SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("FluentHub")
 SaveManager:SetFolder("FluentHub")
 
-InterfaceManager:BuildInterfaceSection(
-    Tabs.Settings
-)
 
-SaveManager:BuildConfigSection(
-    Tabs.Settings
-)
+--==================================================
+-- COLOR
+--==================================================
 
+Tabs.Settings:AddDropdown("UI_Color", {
+    Title = "เลือกสี UI",
+
+    Values = {
+        "Red",
+        "Cyan",
+        "Purple",
+        "White",
+        "Black",
+        "Blue",
+        "Pink",
+        "Green"
+    },
+
+    Default = "Cyan",
+
+    Callback = function(Value)
+        if ColorPresets[Value] then
+
+            RGBEnabled = false
+
+            if RGBConnection then
+                RGBConnection:Disconnect()
+                RGBConnection = nil
+            end
+
+            ApplyColor(ColorPresets[Value])
+        end
+    end
+})
+
+
+--==================================================
+-- RGB
+--==================================================
+
+Tabs.Settings:AddToggle("UI_RGB", {
+    Title = "RGB UI",
+    Description = "ให้สี UI วิ่งอัตโนมัติ",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        RGBEnabled = Value
+
+        if Value then
+            StartRGB()
+        else
+            StopRGB()
+        end
+
+    end
+})
+
+
+--==================================================
+-- FLUENT SETTINGS
+--==================================================
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 --==================================================
 -- START
 --==================================================
