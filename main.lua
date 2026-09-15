@@ -749,13 +749,14 @@ end
 })
 
 --==================================================
--- COLOR + RGB SYSTEM
+-- COLOR + RGB + SETTINGS
 --==================================================
 
 local RunService = game:GetService("RunService")
 
-local RGBEnabled = false
-local RGBConnection = nil
+--==================================================
+-- COLOR PRESETS
+--==================================================
 
 local ColorPresets = {
     Red = Color3.fromRGB(255, 70, 70),
@@ -769,19 +770,42 @@ local ColorPresets = {
 }
 
 local CurrentColor = ColorPresets.Cyan
+local RGBEnabled = false
+local RGBConnection = nil
+
+--==================================================
+-- APPLY COLOR
+--==================================================
 
 local function ApplyColor(Color)
     CurrentColor = Color
 
     pcall(function()
-        for _, Object in ipairs(Fluent.GUI:GetDescendants()) do
+        local GUI = Fluent.GUI
+        if not GUI then
+            return
+        end
+
+        for _, Object in ipairs(GUI:GetDescendants()) do
+
             if Object:IsA("UIStroke") then
                 Object.Color = Color
 
-            elseif Object:IsA("TextButton")
-                or Object:IsA("ImageButton") then
+            elseif Object:IsA("Frame") then
 
-                if Object.BackgroundTransparency < 1 then
+                if Object.Name == "ToggleSlider"
+                    or Object.Name == "SliderRail"
+                    or Object.Name == "InputIndicator" then
+
+                    Object.BackgroundColor3 = Color
+                end
+
+            elseif Object:IsA("TextButton") then
+
+                if Object.Name == "Button"
+                    or Object.Name == "Toggle"
+                    or Object.Name == "Dropdown" then
+
                     Object.BackgroundColor3 = Color
                 end
             end
@@ -789,12 +813,19 @@ local function ApplyColor(Color)
     end)
 end
 
+--==================================================
+-- START RGB
+--==================================================
+
 local function StartRGB()
+
     if RGBConnection then
         RGBConnection:Disconnect()
+        RGBConnection = nil
     end
 
     RGBConnection = RunService.RenderStepped:Connect(function()
+
         if not RGBEnabled then
             return
         end
@@ -806,7 +837,12 @@ local function StartRGB()
     end)
 end
 
+--==================================================
+-- STOP RGB
+--==================================================
+
 local function StopRGB()
+
     if RGBConnection then
         RGBConnection:Disconnect()
         RGBConnection = nil
@@ -831,10 +867,11 @@ SaveManager:SetFolder("FluentHub")
 
 
 --==================================================
--- COLOR
+-- COLOR DROPDOWN
 --==================================================
 
 Tabs.Settings:AddDropdown("UI_Color", {
+
     Title = "เลือกสี UI",
 
     Values = {
@@ -851,27 +888,32 @@ Tabs.Settings:AddDropdown("UI_Color", {
     Default = "Cyan",
 
     Callback = function(Value)
-        if ColorPresets[Value] then
 
-            RGBEnabled = false
-
-            if RGBConnection then
-                RGBConnection:Disconnect()
-                RGBConnection = nil
-            end
-
-            ApplyColor(ColorPresets[Value])
+        if not ColorPresets[Value] then
+            return
         end
+
+        -- ถ้าเลือกสี ให้หยุด RGB
+        RGBEnabled = false
+
+        if RGBConnection then
+            RGBConnection:Disconnect()
+            RGBConnection = nil
+        end
+
+        ApplyColor(ColorPresets[Value])
     end
 })
 
 
 --==================================================
--- RGB
+-- RGB TOGGLE
 --==================================================
 
 Tabs.Settings:AddToggle("UI_RGB", {
+
     Title = "RGB UI",
+
     Description = "ให้สี UI วิ่งอัตโนมัติ",
 
     Default = false,
@@ -888,6 +930,14 @@ Tabs.Settings:AddToggle("UI_RGB", {
 
     end
 })
+
+
+--==================================================
+-- FLUENT SETTINGS
+--==================================================
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
 
 --==================================================
