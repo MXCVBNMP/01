@@ -321,7 +321,7 @@ task.spawn(function()
                     Hit = true
                 })
 
-                task.wait(0.5)
+                task.wait(0.75)
             end
         end
     end
