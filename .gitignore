@@ -354,7 +354,7 @@ task.spawn(function()
 
     local Index = 1
 
-    while task.wait(0.1) do
+    while task.wait(0.2) do
 
         if _G.AutoRhythmHit then
 
