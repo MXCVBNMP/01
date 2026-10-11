@@ -380,8 +380,8 @@ end)
 
 _G.AutoBossPhase2Index = false
 
-Tabs.BossSell:AddToggle("BossSell_Phase2Index", {
-    Title = "คนดี2019",
+Tabs.BossSell:AddToggle("คนดี2019", {
+    Title = "Auto Boss Phase 2 Index",
     Default = false,
 
     Callback = function(Value)
