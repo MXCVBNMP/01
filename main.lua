@@ -93,19 +93,6 @@ Tabs.Main:AddToggle("Main_Honey_Anchor", {
     end
 })
 
-Tabs.Main:AddSlider("Main_Honey_AnchorPosition", {
-    Title = "ตำแหน่งล็อกปลา",
-    Description = "0 = ซ้าย | 0.5 = กลาง | 1 = ขวา",
-
-    Default = 0.5,
-    Min = 0,
-    Max = 1,
-    Rounding = 2,
-
-    Callback = function(Value)
-        getgenv().Honey_AnchorPosition = Value
-    end
-})
 
 Tabs.Main:AddToggle("Main_Honey_AutoCast", {
     Title = "เหวี่ยงเบ็ดอัตโนมัติ",
@@ -294,6 +281,44 @@ task.spawn(function()
         end
     end
 end)
+--==================================================
+-- DLACK KING
+--==================================================
+
+_G.AutoRichRewards = false
+
+Tabs.Main:AddToggle("Auto Rich Rewards", {
+    Title = "เควสคนดำ",
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoRichRewards = Value
+    end
+})
+task.spawn(function()
+    while task.wait(10) do
+        if _G.AutoRichRewards then
+        local Event = game:GetService("ReplicatedStorage").Events.ChooseDialogueOption
+Event:FireServer(
+    "Diao Kewei",
+    1,
+    "MainQuest",
+    {
+        workspace.NPC.Function["Diao Kewei"]
+    }
+)local Event = game:GetService("ReplicatedStorage").Events.ChooseDialogueOption
+Event:FireServer(
+    "Diao Kewei",
+    1,
+    "AcceptQuest",
+    {
+        workspace.NPC.Function["Diao Kewei"],
+        "Rich Rewards"
+    }
+)
+        end
+    end
+end)
 
 --==================================================
 -- AUTO ENZO
@@ -321,7 +346,7 @@ task.spawn(function()
                     Hit = true
                 })
 
-                task.wait(0.75)
+                task.wait(0.5)
             end
         end
     end
@@ -748,6 +773,41 @@ end
 
 })
 
+Tabs.TP:AddButton({
+Title = "Teleport 100-2",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-2895, 7, 1194)  
+
+    end  
+end
+
+})
+
+Tabs.TP:AddButton({
+Title = "Teleport 100-3",
+
+Callback = function()  
+
+    local Character = Player.Character  
+
+    if Character  
+        and Character:FindFirstChild("HumanoidRootPart") then  
+
+        Character.HumanoidRootPart.CFrame =  
+            CFrame.new(-2623, 7, -1309)  
+
+    end  
+end
+
+})
 --==================================================
 -- COLOR + RGB + SETTINGS
 --==================================================
