@@ -373,6 +373,57 @@ task.spawn(function()
     end
 end)
 
+
+--==================================================
+-- AUTO BOSS PHASE 2 INDEX
+--==================================================
+
+_G.AutoBossPhase2Index = false
+
+Tabs.BossSell:AddToggle("BossSell_Phase2Index", {
+    Title = "Auto Boss Phase 2 Index",
+    Default = false,
+
+    Callback = function(Value)
+        _G.AutoBossPhase2Index = Value
+    end
+})
+
+task.spawn(function()
+
+    local Event = ReplicatedStorage
+        :WaitForChild("Events")
+        :WaitForChild("BossPhase2Action")
+
+    while task.wait() do
+
+        if _G.AutoBossPhase2Index then
+
+            for Index = 1, 10000000 do
+
+                if not _G.AutoBossPhase2Index then
+                    break
+                end
+
+                local Success, ErrorMessage = pcall(function()
+                    Event:FireServer({
+                        Index = Index,
+                        Hit = true
+                    })
+                end)
+
+                if not Success then
+                    warn(ErrorMessage)
+                    break
+                end
+
+                task.wait(0.5)
+            end
+
+        end
+    end
+end)
+
 --==================================================
 -- AUTO CAST
 --==================================================
