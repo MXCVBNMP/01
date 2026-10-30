@@ -26,7 +26,7 @@ local Player = Players.LocalPlayer
 --==================================================
 
 local Window = Fluent:CreateWindow({
-    Title = "กายหำเล็ก Hub",
+    Title = "Fluent Hub",
     SubTitle = "Combined",
     TabWidth = 130,
     Size = UDim2.fromOffset(430, 350),
@@ -92,10 +92,12 @@ Tabs.Main:AddToggle("Main_Honey_Anchor", {
         getgenv().Honey_Anchor = Value
     end
 })
+
 local UIS = game:GetService("UserInputService")
 local Event = game:GetService("ReplicatedStorage").Events.ToggleHotbar
 
--- Toggle เดิมของคุณ
+getgenv().Honey_AutoCast = false
+
 Tabs.Main:AddToggle("Main_Honey_AutoCast", {
     Title = "เหวี่ยงเบ็ดอัตโนมัติ",
     Default = false,
@@ -108,16 +110,22 @@ Tabs.Main:AddToggle("Main_Honey_AutoCast", {
 UIS.InputBegan:Connect(function(input, processed)
     if processed then return end
     if not getgenv().Honey_AutoCast then return end
-    print("กดปุ่ม:", input.KeyCode.Name)
-    local key = input.KeyCode.Name
-    if key == "Two" or key == "Three"
-    or key == "Four" or key == "Five"
-    or key == "Six" or key == "Seven"
-    or key == "Eight" or key == "Nine" then
-        print("กำลังเปลี่ยนกลับช่อง 1")
+
+    if input.KeyCode.Value >= Enum.KeyCode.Two.Value
+    and input.KeyCode.Value <= Enum.KeyCode.Nine.Value then
+
         Event:InvokeServer("1", nil)
     end
 end)
+
+Tabs.Main:AddToggle("Main_Honey_AutoSkill", {
+    Title = "ออโต้สกิล",
+    Default = false,
+
+    Callback = function(Value)
+        getgenv().Honey_AutoSkill = Value
+    end
+})
 
 Tabs.Main:AddDropdown("Main_Honey_SkillPick", {
     Title = "เลือกสกิลที่จะกด",
@@ -388,7 +396,7 @@ end)
 _G.AutoBossPhase2Index = false
 
 Tabs.BossSell:AddToggle("BossSell_Phase2Index", {
-    Title = "Auto คนดี2019 ",
+    Title = "คนดี2019",
     Default = false,
 
     Callback = function(Value)
