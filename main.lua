@@ -108,14 +108,13 @@ Tabs.Main:AddToggle("Main_Honey_AutoCast", {
 UIS.InputBegan:Connect(function(input, processed)
     if processed then return end
     if not getgenv().Honey_AutoCast then return end
-
+    print("กดปุ่ม:", input.KeyCode.Name)
     local key = input.KeyCode.Name
-
     if key == "Two" or key == "Three"
     or key == "Four" or key == "Five"
     or key == "Six" or key == "Seven"
     or key == "Eight" or key == "Nine" then
-
+        print("กำลังเปลี่ยนกลับช่อง 1")
         Event:InvokeServer("1", nil)
     end
 end)
